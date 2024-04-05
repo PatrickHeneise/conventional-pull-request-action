@@ -1,6 +1,6 @@
-name: "Conventional Pull Request"
+name: "Conventional Pull Request (Updated)"
 description: "Lint pull requests with the conventional commit spec, for a clean and conventional commit history"
-author: "Matt Bedell <matt@bedell.co>"
+author: "Patrick Heneise <hello@zentered.co>"
 branding:
   icon: "git-pull-request"
   color: "green"
