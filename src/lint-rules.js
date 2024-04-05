@@ -1,31 +1,29 @@
-const path = require("path");
+import path from 'path'
+import configConventional from '@commitlint/config-conventional'
+import core from '@actions/core'
 
-const configConventional = require("@commitlint/config-conventional");
-const core = require("@actions/core");
+import actionMessage from './action-message.js'
 
-const actionMessage = require("./action-message.js");
+export default async function getLintRules(actionConfig) {
+  const { RULES_PATH, GITHUB_WORKSPACE } = actionConfig
 
-module.exports = async function getLintRules(actionConfig) {
-  const { RULES_PATH, GITHUB_WORKSPACE } = actionConfig;
-
-  let overrideRules = {};
+  let overrideRules = {}
 
   // if $GITHUB_WORKSPACE is not set, the checkout action has not run so we can't import the rules file
   if (RULES_PATH && !GITHUB_WORKSPACE) {
-    core.warning(actionMessage.warning.action.checkout);
+    core.warning(actionMessage.warning.action.checkout)
   } else if (RULES_PATH && GITHUB_WORKSPACE) {
-    const configPath = path.resolve(GITHUB_WORKSPACE, RULES_PATH);
+    const configPath = path.resolve(GITHUB_WORKSPACE, RULES_PATH)
     try {
-      /* eslint-disable-next-line global-require, import/no-dynamic-require */
-      const localRules = require(configPath);
-      overrideRules = localRules.rules;
+      const localRules = await import(configPath)
+      overrideRules = localRules.rules
     } catch (e) {
-      if (e.code === "MODULE_NOT_FOUND") {
-        core.warning(actionMessage.warning.action.rules_not_found);
+      if (e.code === 'MODULE_NOT_FOUND') {
+        core.warning(actionMessage.warning.action.rules_not_found)
       } else {
-        throw e;
+        throw e
       }
     }
   }
-  return { ...configConventional.rules, ...overrideRules };
-};
+  return { ...configConventional.rules, ...overrideRules }
+}

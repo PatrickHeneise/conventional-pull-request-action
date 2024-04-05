@@ -1,21 +1,21 @@
-const core = require("@actions/core");
-const github = require("@actions/github");
-const lint = require("@commitlint/lint").default;
-const parserPreset = require("conventional-changelog-conventionalcommits");
+import core from '@actions/core'
+import github from '@actions/github'
+import lint from '@commitlint/lint'
+import parserPreset from 'conventional-changelog-conventionalcommits'
 
-const { getActionConfig, getCommitSubject } = require("./utils.js");
-const actionMessage = require("./action-message.js");
-const getLintRules = require("./lint-rules.js");
+import { getActionConfig, getCommitSubject } from './utils.js'
+import actionMessage from './action-message.js'
+import getLintRules from './lint-rules.js'
 
-async function lintPR() {
-  const actionConfig = getActionConfig();
-  const { GITHUB_TOKEN, COMMIT_TITLE_MATCH, IGNORE_COMMITS } = actionConfig;
+export async function lintPR() {
+  const actionConfig = getActionConfig()
+  const { GITHUB_TOKEN, COMMIT_TITLE_MATCH, IGNORE_COMMITS } = actionConfig
 
-  const client = github.getOctokit(GITHUB_TOKEN);
+  const client = github.getOctokit(GITHUB_TOKEN)
 
   if (!github.context.payload.pull_request) {
-    core.setFailed(actionMessage.fail.pull_request.not_found);
-    return;
+    core.setFailed(actionMessage.fail.pull_request.not_found)
+    return
   }
 
   const {
@@ -23,67 +23,63 @@ async function lintPR() {
     number: pull_number,
     base: {
       user: { login: owner },
-      repo: { name: repo },
-    },
-  } = github.context.payload.pull_request;
+      repo: { name: repo }
+    }
+  } = github.context.payload.pull_request
 
-  const { data: pullRequest } = await client.pulls.get({
+  const { data: pullRequest } = await client.rest.pulls.get({
     owner,
     repo,
-    pull_number,
-  });
-  core.info(`Found PR title: ${pullRequest.title}`);
+    pull_number
+  })
+  core.info(`Found PR title: ${pullRequest.title}`)
 
-  const lintRules = await getLintRules(actionConfig);
+  const lintRules = await getLintRules(actionConfig)
   const {
-    conventionalChangelog: { parserOpts },
-  } = await parserPreset(null, null);
+    conventionalChangelog: { parserOpts }
+  } = await parserPreset(null, null)
 
   if (!IGNORE_COMMITS && pullRequest.commits <= 1) {
     const {
-      data: [{ commit }],
-    } = await client.pulls.listCommits({
+      data: [{ commit }]
+    } = await client.rest.pulls.listCommits({
       owner,
       repo,
       pull_number,
-      per_page: 1,
-    });
+      per_page: 1
+    })
 
-    const commitMessageSubject = getCommitSubject(commit.message);
+    const commitMessageSubject = getCommitSubject(commit.message)
 
     const commitReport = await lint(commitMessageSubject, lintRules, {
-      parserOpts,
-    });
+      parserOpts
+    })
 
     commitReport.warnings.forEach((warn) =>
       core.warning(`Commit message: ${warn.message}`)
-    );
+    )
     commitReport.errors.forEach((err) =>
       core.error(`Commit message: ${err.message}`)
-    );
+    )
 
     if (!commitReport.valid) {
-      core.setFailed(actionMessage.fail.commit.lint);
+      core.setFailed(actionMessage.fail.commit.lint)
     }
 
     if (COMMIT_TITLE_MATCH && pullRequest.title !== commitMessageSubject) {
-      core.setFailed(actionMessage.fail.commit.commit_title_match);
+      core.setFailed(actionMessage.fail.commit.commit_title_match)
     }
   } else {
     const titleReport = await lint(pullRequest.title, lintRules, {
-      parserOpts,
-    });
+      parserOpts
+    })
     titleReport.warnings.forEach((warn) =>
       core.warning(`PR title: ${warn.message}`)
-    );
-    titleReport.errors.forEach((err) => core.error(`PR title: ${err.message}`));
+    )
+    titleReport.errors.forEach((err) => core.error(`PR title: ${err.message}`))
 
     if (!titleReport.valid) {
-      core.setFailed(actionMessage.fail.pull_request.lint);
+      core.setFailed(actionMessage.fail.pull_request.lint)
     }
   }
 }
-
-module.exports = {
-  lintPR,
-};

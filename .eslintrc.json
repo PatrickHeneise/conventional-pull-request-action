@@ -5,13 +5,11 @@
     "node": true,
     "jest/globals": true
   },
-  "extends": [
-    "airbnb-base",
-    "eslint-config-prettier"
-  ],
+  "extends": ["eslint:recommended", "eslint-config-prettier"],
   "plugins": ["jest"],
   "parserOptions": {
-    "ecmaVersion": 14
+    "ecmaVersion": "latest",
+    "sourceType": "module"
   },
   "rules": {},
   "ignorePatterns": ["dist"]

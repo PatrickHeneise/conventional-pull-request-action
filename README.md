@@ -53,12 +53,12 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          commitlintRulesPath: "./commitlint.rules.js" # default: undefined
+          commitlintRulesPath: './commitlint.rules.js' # default: undefined
           # to override config-conventional rules, specify a relative path to your rules module, actions/checkout is required for this setting!
           # if the PR contains a single commit, fail if the commit message and the PR title do not match
-          commitTitleMatch: "true" # default: 'true'
+          commitTitleMatch: 'true' # default: 'true'
           # if you squash merge PRs and enabled "Default to PR title for squash merge commits", you can disable all linting of commits
-          ignoreCommits: "false" # default: 'false'
+          ignoreCommits: 'false' # default: 'false'
 ```
 
 ### Rule Overrides
@@ -70,7 +70,7 @@ This action supports overriding rules from [config-conventional][1] (see this re
 ```js
 // ./commitlint.rules.js
 
-module.exports = {
+export default {
   rules: {
     ...
   }
@@ -82,9 +82,9 @@ module.exports = {
 ```js
 // ./commitlint.config.js
 
-module.exports = {
-  extends: ["@commitlint/config-conventional", "./commitlint.rules.js"],
-};
+export default {
+  extends: ['@commitlint/config-conventional', './commitlint.rules.js']
+}
 ```
 
 ## Contributing
